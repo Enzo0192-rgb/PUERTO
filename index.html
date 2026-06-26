@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PUERTO DE SANTA | Centro de Control Portuario</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="brand">PUERTO DE SANTA</div>
+      <div class="subtitle">CENTRO DE CONTROL PORTUARIO</div>
+    </div>
+    <div class="scenario-control">
+      <span>Escenario</span>
+      <button class="scenario-btn active" data-scenario="actual">Hoy</button>
+      <button class="scenario-btn" data-scenario="y2">+2 años</button>
+      <button class="scenario-btn" data-scenario="y5">+5 años</button>
+      <button class="scenario-btn" data-scenario="y10">+10 años</button>
+    </div>
+    <div class="clock"><strong>26 JUN 2026</strong><span>Demo operativa</span></div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <main class="layout">
+    <section class="map-panel">
+      <div class="map-header">
+        <strong>Mapa operativo del puerto de carga</strong>
+        <span>Ubicación corregida: -31.6591676517, -60.7055013176</span>
+      </div>
+      <div id="map"></div>
+      <div class="legend">
+        <strong>Referencias</strong>
+        <div><span class="swatch wait"></span> Camiones en playa</div>
+        <div><span class="swatch moving"></span> Camiones llamados</div>
+        <div><span class="swatch unload"></span> Descarga</div>
+        <div><span class="swatch ship"></span> Buques/barcazas en agua</div>
+        <div><span class="line in"></span> Ruta ingreso</div>
+        <div><span class="line out"></span> Ruta operación/egreso</div>
+      </div>
+    </section>
+
+    <aside class="right">
+      <section class="card"><h2>Buques / barcazas</h2><table><thead><tr><th>Unidad</th><th>Estado</th><th>Avance</th><th>ETA/ETD</th></tr></thead><tbody id="shipsTable"></tbody></table></section>
+      <section class="card"><h2>Secuencia camiones</h2><div class="steps"><div><b>1</b><span>Ingreso<br>Gate</span></div><div><b>2</b><span>Espera<br>Playa</span></div><div><b>3</b><span>Balanza<br>Ingreso</span></div><div><b>4</b><span>Descarga<br>Tolva</span></div><div><b>5</b><span>Balanza<br>Salida</span></div><div><b>6</b><span>Egreso<br>Cierre</span></div></div><table><tbody id="truckMetrics"></tbody></table></section>
+      <section class="card"><h2>Estimador de costos</h2><div class="form-grid"><label>Camiones/día<input id="trucksPerDay" type="number"></label><label>Espera actual (min)<input id="waitCurrent" type="number"></label><label>Objetivo espera (min)<input id="waitTarget" type="number"></label><label>Costo hora camión (USD)<input id="costTruckHour" type="number"></label><label>Demora buque (h/día)<input id="shipDelayHours" type="number" step="0.1"></label><label>Costo hora buque (USD)<input id="costShipHour" type="number"></label></div><button id="calculateBtn" class="primary">Calcular impacto</button><div class="cost-results" id="costResults"></div></section>
+      <section class="card"><h2>Simulación de inversión</h2><div class="investments"><label><input type="checkbox" id="digitalTurns"> Turnos digitales</label><label><input type="checkbox" id="secondScale"> Segunda balanza</label><label><input type="checkbox" id="yardExpansion"> Ampliar playa</label></div><div class="impact" id="investmentImpact"></div></section>
+      <section class="card"><h2>Alertas operativas</h2><div id="alerts"></div></section>
+    </aside>
+  </main>
+
+  <footer><span>Condiciones: 18°C · Viento NE 12 km/h</span><span>Puerto de carga · Santa Fe</span><span>Fuente: demo basada en ubicación corregida + datos simulados</span></footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="./src/data.js"></script>
+  <script src="./src/app.js"></script>
+</body>
+</html>
