@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PUERTO DE SANTA FE | Centro de Control Portuario</title>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #061522;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+.stage {
+  width: 100vw;
+  height: 100vh;
+  background: #061522;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("./assets/dashboard_puerto_santa_fe.png");
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+/* Capa superior para mantener aspecto de software y permitir futuras interacciones */
+.hotspots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.status {
+  position: absolute;
+  right: 24px;
+  bottom: 18px;
+  color: rgba(255,255,255,.75);
+  font-size: 12px;
+  letter-spacing: .2px;
+  background: rgba(5, 18, 30, .72);
+  border: 1px solid rgba(74, 130, 165, .35);
+  padding: 8px 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+@media (max-aspect-ratio: 16/10) {
+  .dashboard {
+    background-size: cover;
+  }
+}
+</style>
+</head>
+<body>
+  <main class="stage">
+    <section class="dashboard" aria-label="Centro de Control Portuario - Puerto de Santa Fe">
+      <div class="hotspots">
+        <div class="status">Demo visual · Centro de Control Portuario</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
