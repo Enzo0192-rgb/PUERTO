@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PUERTO DE SANTA | Centro de Control Portuario</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+:root{
+  --bg:#061522;--panel:#071d2d;--panel2:#0b263a;--line:#1d405b;--ink:#eef7ff;--muted:#a6bbcc;
+  --blue:#2381d9;--green:#4fc368;--yellow:#f3cf42;--orange:#ff8a22;--red:#ff4747;--purple:#a276ff
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:Inter,Arial,sans-serif;background:#061522;color:var(--ink);overflow-x:hidden}
+.topbar{height:76px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:18px;background:linear-gradient(90deg,#061522,#08233a);border-bottom:1px solid #173956}
+.brand-block{display:flex;gap:14px;align-items:center}.anchor{font-size:38px}.brand{font-size:30px;font-weight:950;letter-spacing:.5px}.subtitle{font-size:14px;color:#d8e7f5;letter-spacing:1.3px}
+.scenario-control{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #2b5069;border-radius:10px;background:#071a2a}
+.scenario-control span{text-transform:uppercase;font-size:12px;color:#fff;font-weight:800}
+.scenario-btn{padding:10px 18px;border-radius:7px;border:1px solid #2b5069;background:#0c2639;color:#fff;font-weight:800;cursor:pointer}
+.scenario-btn.active{background:#20964a;border-color:#36d66a}
+.clock{text-align:right;color:var(--muted);font-size:13px}.clock strong{display:block;color:#fff;font-size:14px;margin-bottom:4px}.clock span{color:#61d978}
+.kpis{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;padding:12px 14px}
+.kpi{background:linear-gradient(180deg,#0c2b40,#081c2d);border:1px solid #1e435d;border-radius:10px;min-height:86px;padding:14px 16px}
+.kpi .label{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:900}.kpi .value{font-size:24px;font-weight:950;margin-top:9px}.kpi .note{font-size:12px;color:#e7f1fb;margin-top:4px}.kpi.orange .value{color:var(--orange)}
+.dashboard{display:grid;grid-template-columns:1.95fr .6fr;gap:12px;padding:0 14px 12px}
+.map-card,.panel{background:rgba(7,29,45,.96);border:1px solid var(--line);border-radius:11px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.25)}
+#map{height:620px;background:#0a1f30}
+.right-panel{display:flex;flex-direction:column;gap:12px}.panel h2{margin:0;padding:12px 14px;background:#08233a;border-bottom:1px solid var(--line);font-size:16px;text-transform:uppercase}
+.river-ops{display:grid;gap:10px;padding:12px}.river-card{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;background:linear-gradient(180deg,#08273b,#071c2c);border:1px solid #1f425e;border-radius:9px;padding:12px}.river-card .ship-emoji{font-size:31px}.river-card b{display:block;color:#51e96f}.river-card .state{font-weight:900;color:#5ee979}.river-card small{display:block;color:#fff;margin-top:4px}.bar{height:7px;border-radius:999px;background:#20384a;overflow:hidden;margin-top:8px}.bar span{display:block;height:100%;background:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:13px}td{padding:9px 12px;border-bottom:1px solid #173956}td:last-child{text-align:right}
+.donut-wrap{display:flex;align-items:center;gap:20px;padding:18px}.donut{width:116px;height:116px;border-radius:50%;background:conic-gradient(#4fc368 0 92%,#f3cf42 92% 97%,#58a9df 97% 100%);display:grid;place-items:center}.donut span{width:72px;height:72px;border-radius:50%;background:#071d2d;display:grid;place-items:center;text-align:center;font-weight:900;font-size:20px;line-height:1.05}.donut small{font-size:11px;color:var(--muted)}.donut-list{display:grid;gap:12px;flex:1}.donut-list div{display:flex;justify-content:space-between;gap:20px;color:#fff}.sq{display:inline-block;width:10px;height:10px;margin-right:7px}.soja{background:#4fc368}.maiz{background:#f3cf42}.trigo{background:#58a9df}
+.bottom-grid{display:grid;grid-template-columns:1fr .72fr .78fr;gap:12px;padding:0 14px 14px}.truck-sequence{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;padding:22px 24px}.truck-sequence div{text-align:center;position:relative}.truck-sequence b{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#0b263a;border:1px solid #2b5069;font-size:20px}.truck-sequence span{display:block;margin-top:10px;font-size:12px}.truck-sequence .active-step b{border-color:#80ff55;box-shadow:0 0 12px rgba(128,255,85,.45);color:#80ff55}
+.alerts{display:grid;gap:8px;padding:12px 14px}.alert{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border-bottom:1px solid #173956;padding:8px 0;font-size:12px}.alert .icon{font-size:24px}.alert b{display:block;font-size:13px}
+.investment-line{display:flex;gap:10px;align-items:center;padding:16px}.investment-line select{flex:1;padding:10px;background:#0b263a;color:#fff;border:1px solid #2b5069;border-radius:7px}.investment-line button{padding:10px 22px;border:0;border-radius:7px;background:#2fa652;color:#fff;font-weight:900;cursor:pointer}.impact{padding:0 16px 16px;display:grid;gap:8px}.impact-row{display:flex;justify-content:space-between;color:var(--muted)}.impact-row b{color:#4fc368}
+.zone-label{background:rgba(7,29,45,.96);border:2px solid #426c88;color:#fff;border-radius:7px;padding:10px 13px;text-align:left;font-weight:950;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.35);min-width:160px}.zone-label .z-title{font-size:14px;text-transform:uppercase}.zone-label small{display:block;margin-top:5px;color:#fff;font-weight:600}.zone-label.green{border-color:#4fc368}.zone-label.yellow{border-color:#f3cf42}.zone-label.blue{border-color:#2381d9}.zone-label.orange{border-color:#ff8a22}.zone-label.purple{border-color:#a276ff}
+.truck-icon{font-size:9px;filter:drop-shadow(0 2px 2px #000)}.truck-op{font-size:12px;filter:drop-shadow(0 2px 2px #000)}.ship-icon{font-size:34px;filter:drop-shadow(0 4px 5px #000)}
+.leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.35)!important;color:#fff!important}
+.leaflet-control-zoom a{background:#071d2d!important;color:white!important;border-color:#1d405b!important}
+@media(max-width:1300px){.dashboard,.bottom-grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.topbar{height:auto;flex-direction:column;align-items:flex-start}.scenario-control{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand-block">
+    <div class="anchor">⚓</div>
+    <div>
+      <div class="brand">PUERTO DE SANTA</div>
+      <div class="subtitle">CENTRO DE CONTROL PORTUARIO</div>
+    </div>
+  </div>
+  <nav class="scenario-control">
+    <span>Escenario:</span>
+    <button class="scenario-btn active" data-scenario="actual">Hoy</button>
+    <button class="scenario-btn" data-scenario="y2">+2 años</button>
+    <button class="scenario-btn" data-scenario="y5">+5 años</button>
+    <button class="scenario-btn" data-scenario="y10">+10 años</button>
+  </nav>
+  <div class="clock">
+    <strong>26 JUN 2026 | 10:24:35</strong>
+    <span>● Actualización en tiempo real</span>
+  </div>
+</header>
+
+<section class="kpis" id="kpis"></section>
+
+<main class="dashboard">
+  <section class="map-card"><div id="map"></div></section>
+
+  <aside class="right-panel">
+    <section class="panel">
+      <h2>Buques en río (esperando carga)</h2>
+      <div id="riverOps" class="river-ops"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Distribución de carga programada (hoy)</h2>
+      <div class="donut-wrap">
+        <div class="donut"><span id="donutValue">3.450<br><small>tn hoy</small></span></div>
+        <div class="donut-list">
+          <div><span class="sq soja"></span>Soja <b>92%</b></div>
+          <div><span class="sq maiz"></span>Maíz <b>5%</b></div>
+          <div><span class="sq trigo"></span>Trigo <b>3%</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Estimador de costos (hoy)</h2>
+      <table><tbody id="costTable"></tbody></table>
+    </section>
+  </aside>
+</main>
+
+<section class="bottom-grid">
+  <section class="panel">
+    <h2>Secuencia operativa de camiones</h2>
+    <div class="truck-sequence">
+      <div><b>1</b><span>Ingreso</span></div>
+      <div class="active-step"><b>2</b><span>Espera en playa</span></div>
+      <div><b>3</b><span>Balanza</span></div>
+      <div><b>4</b><span>Descarga</span></div>
+      <div><b>5</b><span>Retiro</span></div>
+      <div><b>6</b><span>Salida</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Alertas</h2>
+    <div class="alerts" id="alerts"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Simulación de inversión</h2>
+    <div class="investment-line">
+      <label>Agregar inversión:</label>
+      <select id="investmentSelect">
+        <option value="scale">Nueva balanza</option>
+        <option value="turns">Turnos digitales</option>
+        <option value="yard">Ampliación de playa</option>
+        <option value="dock">Mejora de muelle</option>
+      </select>
+      <button id="simulateBtn">Simular</button>
+    </div>
+    <div class="impact" id="impactBox"></div>
+  </section>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const scenarios={
+  actual:{trucksInYard:118,yardCapacity:160,scales:2,unloading:0,tonsToday:3450,vessels:2,scaleTime:12,waitTime:36,costToday:24860,shipsVisible:2},
+  y2:{trucksInYard:154,yardCapacity:190,scales:2,unloading:0,tonsToday:5200,vessels:3,scaleTime:17,waitTime:49,costToday:39500,shipsVisible:3},
+  y5:{trucksInYard:238,yardCapacity:260,scales:2,unloading:0,tonsToday:8300,vessels:5,scaleTime:26,waitTime:72,costToday:72000,shipsVisible:5},
+  y10:{trucksInYard:390,yardCapacity:420,scales:2,unloading:0,tonsToday:14200,vessels:8,scaleTime:41,waitTime:105,costToday:148000,shipsVisible:8}
+};
+const mapData={
+  center:[-31.65915,-60.70420],
+  zoom:18,
+  zones:[
+    {name:"Acceso / Gate",text:"Ingreso de camiones",color:"#4fc368",cls:"green",center:[-31.65792,-60.70672],polygon:[[-31.65772,-60.70698],[-31.65758,-60.70652],[-31.65812,-60.70636],[-31.65824,-60.70682]],label:[-31.65775,-60.70755]},
+    {name:"Playa de espera",text:"118 camiones · Cap. 160",color:"#f3cf42",cls:"yellow",center:[-31.65905,-60.70565],polygon:[[-31.65822,-60.70626],[-31.65825,-60.70500],[-31.65988,-60.70496],[-31.65990,-60.70622]],label:[-31.65898,-60.70712]},
+    {name:"Balanzas",text:"2 operativas",color:"#2381d9",cls:"blue",center:[-31.66027,-60.70576],polygon:[[-31.66002,-60.70616],[-31.66002,-60.70535],[-31.66070,-60.70534],[-31.66070,-60.70610]],label:[-31.66022,-60.70724]},
+    {name:"Tolva / Descarga",text:"12 camiones",color:"#ff8a22",cls:"orange",center:[-31.66118,-60.70538],polygon:[[-31.66085,-60.70580],[-31.66082,-60.70486],[-31.66158,-60.70483],[-31.66162,-60.70574]],label:[-31.66112,-60.70722]},
+    {name:"Silos",text:"Cap. 120.000 tn",color:"#a276ff",cls:"purple",center:[-31.66185,-60.70455],polygon:[[-31.66128,-60.70502],[-31.66125,-60.70420],[-31.66230,-60.70415],[-31.66236,-60.70495]],label:[-31.66182,-60.70670]}
+  ],
+  routes:{
+    in:[[-31.65725,-60.70760],[-31.65792,-60.70672],[-31.65905,-60.70565]],
+    op:[[-31.65905,-60.70565],[-31.66027,-60.70576],[-31.66118,-60.70538],[-31.66185,-60.70455]]
+  },
+  ships:[
+    {id:"BARCAZA 01",state:"En espera para cargar",cargo:"Soja",loaded:1950,total:3000,eta:"ETA inicio carga: 13:45",pos:[-31.65872,-60.70115]},
+    {id:"BARCAZA 02",state:"En espera para cargar",cargo:"Soja",loaded:0,total:3000,eta:"ETA inicio carga: 11:30",pos:[-31.66065,-60.70105]},
+    {id:"BARCAZA 03",state:"En espera para cargar",cargo:"Granel",loaded:0,total:4200,eta:"ETA inicio carga: 15:10",pos:[-31.65745,-60.70125]},
+    {id:"BARCAZA 04",state:"En espera para cargar",cargo:"Soja",loaded:0,total:3800,eta:"ETA inicio carga: 17:20",pos:[-31.66175,-60.70095]},
+    {id:"BARCAZA 05",state:"En espera para cargar",cargo:"Carga general",loaded:0,total:2600,eta:"Mañana",pos:[-31.65625,-60.70140]},
+    {id:"BARCAZA 06",state:"Programada",cargo:"Soja",loaded:0,total:3000,eta:"Mañana",pos:[-31.66282,-60.70082]},
+    {id:"BARCAZA 07",state:"ETA",cargo:"Granel",loaded:0,total:4100,eta:"Mañana",pos:[-31.65520,-60.70155]},
+    {id:"BARCAZA 08",state:"ETA",cargo:"Soja",loaded:0,total:3000,eta:"Mañana",pos:[-31.66385,-60.70070]}
+  ]
+};
+let map,currentScenario="actual",layers=[];
+function money(v){return"USD "+Math.round(v).toLocaleString("es-AR")}
+function clearMapLayers(){layers.forEach(l=>map.removeLayer(l));layers=[]}
+function icon(html,size=[28,28],anchor=[14,14]){return L.divIcon({className:"",html,iconSize:size,iconAnchor:anchor})}
+function init(){
+  map=L.map("map",{zoomControl:true,scrollWheelZoom:true}).setView(mapData.center,mapData.zoom);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{attribution:"Tiles &copy; Esri"}).addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{opacity:.08,maxZoom:19}).addTo(map);
+  document.querySelectorAll(".scenario-btn").forEach(btn=>btn.addEventListener("click",()=>{currentScenario=btn.dataset.scenario;document.querySelectorAll(".scenario-btn").forEach(b=>b.classList.toggle("active",b.dataset.scenario===currentScenario));renderAll()}));
+  document.getElementById("simulateBtn").addEventListener("click",renderInvestment);
+  renderAll();
+}
+function renderAll(){renderKPIs();renderMap();renderPanels();renderInvestment()}
+function renderKPIs(){
+  const s=scenarios[currentScenario];
+  const k=[
+    ["Camiones en playa",`${s.trucksInYard} / ${s.yardCapacity}`,"En espera",""],
+    ["Balanzas operativas",`${s.scales} / 2`,"En uso",""],
+    ["En descarga",`${s.unloading}`,"Camiones",""],
+    ["Toneladas hoy",`${s.tonsToday.toLocaleString("es-AR")} tn`,"Total programado",""],
+    ["Buques en río",`${s.vessels}`,"Esperando carga",""],
+    ["Tiempo prom. balanza",`${s.scaleTime} min`,"Por camión",""],
+    ["Tiempo prom. espera",`${s.waitTime} min`,"Por camión",""],
+    ["Costo operativo hoy",money(s.costToday),"Estimado","orange"]
+  ];
+  document.getElementById("kpis").innerHTML=k.map(x=>`<article class="kpi ${x[3]}"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="note">${x[2]}</div></article>`).join("");
+}
+function renderMap(){
+  clearMapLayers();
+  const s=scenarios[currentScenario];
+  mapData.zones.forEach(z=>{
+    layers.push(L.polygon(z.polygon,{color:z.color,fillColor:z.color,fillOpacity:.18,weight:2}).addTo(map));
+    layers.push(L.polyline([z.label,z.center],{color:z.color,weight:2,opacity:.85}).addTo(map));
+    layers.push(L.marker(z.label,{icon:icon(`<div class="zone-label ${z.cls}"><div class="z-title">${z.name}</div><small>${z.text}</small></div>`,[168,64],[84,32])}).addTo(map));
+  });
+  layers.push(L.polyline(mapData.routes.in,{color:"#4fc368",weight:3,opacity:.75}).addTo(map));
+  layers.push(L.polyline(mapData.routes.op,{color:"#f3cf42",weight:3,opacity:.70}).addTo(map));
+  renderTruckYard(s); renderOperationalTrucks(); renderShips(s);
+}
+function renderTruckYard(s){
+  const maxVisible=Math.min(s.trucksInYard,120),cols=12;
+  for(let i=0;i<maxVisible;i++){
+    const r=Math.floor(i/cols),c=i%cols;
+    const lat=-31.65842-r*0.000095,lon=-60.70618+c*0.000102;
+    if(lat>-31.65990 && lon<-60.70496){
+      layers.push(L.marker([lat,lon],{icon:icon(`<div class="truck-icon">🚛</div>`,[11,11],[5,5])}).addTo(map));
+    }
+  }
+}
+function renderOperationalTrucks(){
+  const trucks=[[-31.65792,-60.70672,"Gate"],[-31.66027,-60.70576,"Balanza"],[-31.66118,-60.70538,"Tolva"],[-31.66185,-60.70455,"Silos"]];
+  trucks.forEach(t=>layers.push(L.marker([t[0],t[1]],{icon:icon(`<div class="truck-op">🚚</div>`,[16,16],[8,8])}).addTo(map).bindPopup(`Camión en proceso: ${t[2]}`)));
+}
+function renderShips(s){
+  mapData.ships.slice(0,s.shipsVisible).forEach(ship=>{
+    layers.push(L.marker(ship.pos,{icon:icon(`<div class="ship-icon">🚢</div>`,[38,38],[19,19])}).addTo(map).bindPopup(`${ship.id}<br>${ship.state}<br>${ship.cargo}`));
+  });
+}
+function renderPanels(){
+  const s=scenarios[currentScenario];
+  document.getElementById("riverOps").innerHTML=mapData.ships.slice(0,2).map(ship=>{
+    const pct=Math.round(ship.loaded/ship.total*100);
+    return `<div class="river-card"><div class="ship-emoji">🚢</div><div><b>${ship.id}</b><div class="state">${ship.state}</div><small>${ship.cargo}</small><small>${ship.loaded.toLocaleString("es-AR")} / ${ship.total.toLocaleString("es-AR")} tn</small><div class="bar"><span style="width:${pct}%"></span></div><small>${ship.eta} · ${pct}%</small></div></div>`;
+  }).join("");
+  const waitingCost=Math.round(s.trucksInYard*s.waitTime/60*42),dischargeCost=Math.round(12760*(s.tonsToday/3450)),infra=3760;
+  document.getElementById("costTable").innerHTML=`<tr><td>Espera camiones</td><td>${money(waitingCost)}</td></tr><tr><td>Operación de descarga</td><td>${money(dischargeCost)}</td></tr><tr><td>Infraestructura</td><td>${money(infra)}</td></tr><tr><td><b>TOTAL ESTIMADO</b></td><td><b style="color:#ff8a22">${money(s.costToday)}</b></td></tr>`;
+  document.getElementById("donutValue").innerHTML=`${s.tonsToday.toLocaleString("es-AR")}<br><small>tn hoy</small>`;
+  document.getElementById("alerts").innerHTML=`<div class="alert"><div class="icon">⚠️</div><div><b>Alta ocupación en playa (${Math.round(s.trucksInYard/s.yardCapacity*100)}%)</b>Capacidad recomendada: hasta 80%</div><span>10:22</span></div><div class="alert"><div class="icon">✅</div><div><b>Tolva T1 operativa</b>Descarga normal</div><span>10:18</span></div><div class="alert"><div class="icon">ℹ️</div><div><b>Próximo buque en espera</b>ETA: 11:30 hs</div><span>10:15</span></div>`;
+}
+function renderInvestment(){
+  const option=document.getElementById("investmentSelect").value;
+  const impacts={scale:["Tiempo prom. en balanza","-22%","Tiempo prom. de espera","-18 min","Costo operativo anual","-USD 712.000"],turns:["Tiempo prom. de espera","-26%","Ocupación playa","-19%","Costo operativo anual","-USD 540.000"],yard:["Capacidad playa","+80 camiones","Saturación","-31%","Costo operativo anual","-USD 420.000"],dock:["Productividad de carga","+18%","Espera de barcazas","-24%","Costo operativo anual","-USD 880.000"]};
+  const i=impacts[option];
+  document.getElementById("impactBox").innerHTML=`<div class="impact-row"><span>${i[0]}</span><b>${i[1]}</b></div><div class="impact-row"><span>${i[2]}</span><b>${i[3]}</b></div><div class="impact-row"><span>${i[4]}</span><b>${i[5]}</b></div>`;
+}
+document.addEventListener("DOMContentLoaded",init);
+</script>
+</body>
+</html>
