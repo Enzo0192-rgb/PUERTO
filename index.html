@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puerto de Santa Fe | Tablero interactivo</title>
+<style>
+:root{--bg:#061522;--panel:#071d2d;--line:#1d405b;--ink:#eef7ff;--muted:#a6bbcc;--green:#39d86a;--blue:#2381d9;--orange:#ff8a22;--red:#ff5858}
+*{box-sizing:border-box}
+body{margin:0;background:#061522;color:var(--ink);font-family:Arial,Helvetica,sans-serif;overflow:hidden}
+.app{height:100vh;display:grid;grid-template-columns:1fr 390px;background:radial-gradient(circle at top left,#123b55 0,#061522 42%,#03090f 100%)}
+.visual{position:relative;padding:14px;display:flex;align-items:center;justify-content:center}
+.frame{width:100%;height:calc(100vh - 28px);border:1px solid rgba(90,150,190,.35);border-radius:12px;background:url("./assets/dashboard_puerto_santa_fe.png") center/contain no-repeat;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+.live{position:absolute;left:28px;top:26px;background:rgba(7,29,45,.88);border:1px solid rgba(90,150,190,.45);border-radius:10px;padding:10px 14px;font-weight:900}.live span{color:var(--green)}
+.panel{border-left:1px solid var(--line);background:rgba(5,19,31,.96);padding:18px;overflow:auto}
+h1{margin:0 0 4px;font-size:24px}.sub{color:#9fd5ff;font-size:13px;font-weight:700;margin-bottom:16px}
+.card{border:1px solid #1e435d;background:rgba(7,29,45,.92);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.card h2{margin:0;padding:12px 14px;font-size:14px;text-transform:uppercase;border-bottom:1px solid #1e435d}
+.content{padding:14px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+button{border:1px solid #28516e;background:#0b263a;color:#fff;border-radius:9px;padding:11px 10px;font-weight:900;cursor:pointer}
+button.active{background:#229a4b;border-color:#44e377}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kpi{background:#061a28;border:1px solid #173956;border-radius:10px;padding:12px}.kpi small{display:block;color:var(--muted);text-transform:uppercase;font-size:10px;font-weight:900;min-height:24px}.kpi b{display:block;font-size:22px;margin-top:8px}.kpi.orange b{color:var(--orange)}.kpi.green b{color:var(--green)}
+.barwrap{height:8px;border-radius:999px;background:#1c3547;overflow:hidden;margin-top:10px}.bar{height:100%;background:var(--green);width:50%;transition:.25s}.bar.orange{background:var(--orange)}.bar.red{background:var(--red)}
+label{display:grid;gap:5px;color:var(--muted);font-size:12px;font-weight:800}.checks{display:grid;gap:8px}.checks label{grid-template-columns:18px 1fr;align-items:center;background:#061a28;border:1px solid #173956;border-radius:9px;padding:9px;color:#fff}
+input{border:1px solid #28516e;background:#061522;color:#fff;border-radius:8px;padding:10px}
+.result{display:grid;gap:8px;margin-top:12px}.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #173956;padding:8px 0;color:var(--muted)}.row b{color:#fff}.row.good b{color:var(--green)}.row.warn b{color:var(--orange)}
+.ship{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;background:#061a28;border:1px solid #173956;border-radius:10px;padding:10px;margin-bottom:8px}.ship .emoji{font-size:26px}.ship b{display:block}.ship small{display:block;color:var(--muted);margin-top:3px}
+.note{color:var(--muted);font-size:12px;line-height:1.45;margin-top:12px}
+@media(max-width:1100px){body{overflow:auto}.app{height:auto;display:block}.frame{height:62vh}.panel{border-left:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<main class="app">
+<section class="visual">
+  <div class="live">Tablero interactivo · <span id="liveScenario">Hoy</span></div>
+  <div class="frame"></div>
+</section>
+<aside class="panel">
+  <h1>Puerto de Santa Fe</h1>
+  <div class="sub">Centro de Control Portuario · simulador operativo</div>
+
+  <section class="card"><h2>Escenarios de proyección</h2><div class="content grid2">
+    <button class="scenario active" data-scenario="actual">Hoy</button>
+    <button class="scenario" data-scenario="y2">+2 años</button>
+    <button class="scenario" data-scenario="y5">+5 años</button>
+    <button class="scenario" data-scenario="y10">+10 años</button>
+  </div></section>
+
+  <section class="card"><h2>Indicadores operativos</h2><div class="content kpis">
+    <div class="kpi"><small>Camiones en playa</small><b id="kTrucks">118 / 160</b><div class="barwrap"><div class="bar" id="bTrucks"></div></div></div>
+    <div class="kpi green"><small>Toneladas por cargar</small><b id="kTons">24.350 tn</b><div class="barwrap"><div class="bar" id="bTons"></div></div></div>
+    <div class="kpi"><small>Tiempo promedio</small><b id="kTime">2,6 h</b><div class="barwrap"><div class="bar orange" id="bTime"></div></div></div>
+    <div class="kpi orange"><small>Costo operativo</small><b id="kCost">$ 2,45 M</b><div class="barwrap"><div class="bar orange" id="bCost"></div></div></div>
+  </div></section>
+
+  <section class="card"><h2>Simulador de inversiones</h2><div class="content">
+    <div class="checks">
+      <label><input type="checkbox" id="invTurns"> Turnos digitales</label>
+      <label><input type="checkbox" id="invScale"> Nueva balanza</label>
+      <label><input type="checkbox" id="invYard"> Ampliar playa</label>
+      <label><input type="checkbox" id="invDock"> Mejorar muelle</label>
+    </div>
+    <div class="result" id="investmentResult"></div>
+  </div></section>
+
+  <section class="card"><h2>Estimador de costos</h2><div class="content">
+    <label>Camiones por día<input type="number" id="trucksDay" value="118"></label><br>
+    <label>Espera promedio por camión (min)<input type="number" id="waitMin" value="36"></label><br>
+    <label>Costo hora camión (USD)<input type="number" id="truckHourCost" value="42"></label>
+    <button id="calcBtn" style="width:100%;margin-top:10px">Calcular costos</button>
+    <div class="result" id="costResult"></div>
+  </div></section>
+
+  <section class="card"><h2>Barcazas en río</h2><div class="content" id="ships"></div></section>
+  <div class="note">La imagen representa el centro de control. El panel derecho permite manipular escenarios, inversiones y costos para mostrar alternativas operativas.</div>
+</aside>
+</main>
+
+<script>
+const scenarios={
+ actual:{label:"Hoy",trucks:118,cap:160,tons:24350,tonsCap:30000,time:2.6,cost:2.45,ships:2},
+ y2:{label:"+2 años",trucks:154,cap:190,tons:35000,tonsCap:45000,time:3.2,cost:3.1,ships:3},
+ y5:{label:"+5 años",trucks:238,cap:260,tons:62000,tonsCap:80000,time:4.4,cost:5.8,ships:5},
+ y10:{label:"+10 años",trucks:390,cap:420,tons:110000,tonsCap:140000,time:6.1,cost:9.7,ships:6}
+};
+const ships=[["BZA 1048","8.000 tn","ETA 2,4 h"],["BZA 2056","7.500 tn","ETA 5,1 h"],["BZA 3091","8.850 tn","ETA 7,3 h"],["BZA 4022","6.200 tn","ETA 9,1 h"],["BZA 5067","7.900 tn","ETA 11,3 h"],["BZA 6020","8.300 tn","ETA 13,0 h"]];
+let current="actual";
+function n(x){return x.toLocaleString("es-AR")}
+function setScenario(k){current=k;document.querySelectorAll(".scenario").forEach(b=>b.classList.toggle("active",b.dataset.scenario===k));render()}
+function render(){
+ const s=scenarios[current];
+ document.getElementById("liveScenario").textContent=s.label;
+ document.getElementById("kTrucks").textContent=`${s.trucks} / ${s.cap}`;
+ document.getElementById("kTons").textContent=`${n(s.tons)} tn`;
+ document.getElementById("kTime").textContent=`${String(s.time).replace(".",",")} h`;
+ document.getElementById("kCost").textContent=`$ ${String(s.cost).replace(".",",")} M`;
+ const pT=Math.min(100,Math.round(s.trucks/s.cap*100)); const pN=Math.min(100,Math.round(s.tons/s.tonsCap*100));
+ document.getElementById("bTrucks").style.width=pT+"%"; document.getElementById("bTrucks").className="bar "+(pT>85?"red":pT>75?"orange":"");
+ document.getElementById("bTons").style.width=pN+"%"; document.getElementById("bTime").style.width=Math.min(100,Math.round(s.time/7*100))+"%"; document.getElementById("bCost").style.width=Math.min(100,Math.round(s.cost/10*100))+"%";
+ renderShips(s.ships); renderInvestment(); calculateCosts();
+}
+function renderShips(count){document.getElementById("ships").innerHTML=ships.slice(0,count).map(s=>`<div class="ship"><div class="emoji">🚢</div><div><b>${s[0]}</b><small>${s[2]}</small></div><div><b>${s[1]}</b><small>pendientes</small></div></div>`).join("")}
+function renderInvestment(){
+ let red=0,cap=0,save=0;
+ if(invTurns.checked){red+=18;save+=420000} if(invScale.checked){red+=22;save+=712000} if(invYard.checked){cap+=80;red+=10;save+=360000} if(invDock.checked){red+=8;save+=880000}
+ investmentResult.innerHTML=`<div class="row good"><span>Reducción de espera</span><b>-${red}%</b></div><div class="row good"><span>Aumento de capacidad</span><b>+${cap} camiones</b></div><div class="row good"><span>Ahorro anual potencial</span><b>USD ${n(save)}</b></div>`;
+}
+function calculateCosts(){
+ const daily=Number(trucksDay.value||0)*(Number(waitMin.value||0)/60)*Number(truckHourCost.value||0), annual=daily*300;
+ costResult.innerHTML=`<div class="row warn"><span>Costo diario por espera</span><b>USD ${n(Math.round(daily))}</b></div><div class="row warn"><span>Costo anual estimado</span><b>USD ${n(Math.round(annual))}</b></div>`;
+}
+document.querySelectorAll(".scenario").forEach(b=>b.addEventListener("click",()=>setScenario(b.dataset.scenario)));
+document.querySelectorAll("input[type='checkbox']").forEach(i=>i.addEventListener("change",renderInvestment));
+calcBtn.addEventListener("click",calculateCosts);
+["trucksDay","waitMin","truckHourCost"].forEach(id=>document.getElementById(id).addEventListener("input",calculateCosts));
+render();
+</script>
+</body>
+</html>
