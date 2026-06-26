@@ -1,0 +1,22 @@
+{
+  "truck_hour_cost_usd": 42,
+  "operational_days_year": 300,
+  "investment_impacts": {
+    "digital_turns": {
+      "wait_reduction_pct": 18,
+      "annual_saving_usd": 420000
+    },
+    "new_scale": {
+      "wait_reduction_pct": 22,
+      "annual_saving_usd": 712000
+    },
+    "yard_expansion": {
+      "capacity_trucks": 80,
+      "annual_saving_usd": 360000
+    },
+    "dock_improvement": {
+      "wait_reduction_pct": 8,
+      "annual_saving_usd": 880000
+    }
+  }
+}

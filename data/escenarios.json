@@ -1,0 +1,22 @@
+{
+  "actual": {
+    "label": "Hoy",
+    "trucks": 118,
+    "ships": 2
+  },
+  "y2": {
+    "label": "+2 años",
+    "trucks": 154,
+    "ships": 3
+  },
+  "y5": {
+    "label": "+5 años",
+    "trucks": 238,
+    "ships": 5
+  },
+  "y10": {
+    "label": "+10 años",
+    "trucks": 390,
+    "ships": 6
+  }
+}

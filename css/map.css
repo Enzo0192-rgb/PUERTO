@@ -1,0 +1,49 @@
+#map {
+  height: 690px;
+  background: #0a1f30;
+}
+
+.zone-label {
+  background: rgba(7,29,45,.94);
+  border: 2px solid #426c88;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 950;
+  font-size: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  min-width: 140px;
+}
+
+.zone-label small {
+  display: block;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.truck {
+  font-size: 10px;
+  filter: drop-shadow(0 2px 2px #000);
+}
+
+.truck-op {
+  font-size: 14px;
+  filter: drop-shadow(0 2px 2px #000);
+}
+
+.ship-icon {
+  font-size: 34px;
+  filter: drop-shadow(0 5px 7px #000);
+}
+
+.leaflet-control-attribution {
+  font-size: 9px !important;
+  background: rgba(0,0,0,.35) !important;
+  color: white !important;
+}
+
+.leaflet-control-zoom a {
+  background: #071d2d !important;
+  color: white !important;
+  border-color: #1d405b !important;
+}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PUERTO DE SANTA FE | Centro de Control Portuario</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <link rel="stylesheet" href="./css/map.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">⚓</div>
+        <div>
+          <h1>PUERTO DE SANTA FE</h1>
+          <p>Centro de Control Portuario · Dashboard Operativo Interactivo</p>
+        </div>
+      </div>
+
+      <nav class="scenario-nav" id="scenarioNav">
+        <span>Escenario:</span>
+        <button class="active" data-scenario="actual">Hoy</button>
+        <button data-scenario="y2">+2 años</button>
+        <button data-scenario="y5">+5 años</button>
+        <button data-scenario="y10">+10 años</button>
+      </nav>
+
+      <div class="live-status">
+        <strong>26 JUN 2026 | 10:24</strong>
+        <span>● Actualización operativa</span>
+      </div>
+    </header>
+
+    <section class="kpi-strip" id="kpiStrip"></section>
+
+    <main class="workspace">
+      <aside class="left-panel">
+        <section class="panel">
+          <h2>Capas operativas</h2>
+          <label><input type="checkbox" data-layer="zones" checked /> Zonas operativas</label>
+          <label><input type="checkbox" data-layer="routes" checked /> Rutas internas</label>
+          <label><input type="checkbox" data-layer="trucks" checked /> Camiones</label>
+          <label><input type="checkbox" data-layer="ships" checked /> Barcazas</label>
+        </section>
+
+        <section class="panel">
+          <h2>Simulador de inversiones</h2>
+          <label><input type="checkbox" id="invTurns" /> Turnos digitales</label>
+          <label><input type="checkbox" id="invScale" /> Nueva balanza</label>
+          <label><input type="checkbox" id="invYard" /> Ampliación de playa</label>
+          <label><input type="checkbox" id="invDock" /> Mejora de muelle</label>
+          <div class="result-list" id="investmentResult"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Estimador de costos</h2>
+          <div class="form-grid">
+            <label>Camiones/día <input id="trucksDay" type="number" /></label>
+            <label>Espera promedio (min) <input id="waitMin" type="number" /></label>
+            <label>Costo hora camión USD <input id="truckHourCost" type="number" value="42" /></label>
+          </div>
+          <button class="primary" id="calcBtn">Calcular impacto</button>
+          <div class="result-list" id="costResult"></div>
+        </section>
+      </aside>
+
+      <section class="map-panel">
+        <div class="map-header">
+          <strong>Mapa operativo del puerto</strong>
+          <span>Terminal fluvial · Barcazas en río · Camiones en playa</span>
+        </div>
+        <div id="map"></div>
+      </section>
+
+      <aside class="right-panel">
+        <section class="panel">
+          <h2>Barcazas en río</h2>
+          <div id="shipsList"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Secuencia camiones</h2>
+          <div class="flow">
+            <div><b>1</b><span>Ingreso</span></div>
+            <div><b>2</b><span>Playa</span></div>
+            <div><b>3</b><span>Balanza</span></div>
+            <div><b>4</b><span>Descarga</span></div>
+            <div><b>5</b><span>Acopio</span></div>
+            <div><b>6</b><span>Salida</span></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Alertas operativas</h2>
+          <div id="alerts"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="./js/scenarios.js"></script>
+  <script src="./js/map.js"></script>
+  <script src="./js/simulator.js"></script>
+  <script src="./js/charts.js"></script>
+  <script src="./js/animations.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

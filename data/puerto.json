@@ -1,0 +1,9 @@
+{
+  "name": "Puerto de Santa Fe",
+  "type": "Terminal fluvial multipropósito",
+  "center": [
+    -31.65915,
+    -60.7042
+  ],
+  "description": "Dashboard operativo interactivo para simulación de camiones, barcazas, costos e inversiones."
+}
