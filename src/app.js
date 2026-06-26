@@ -1,97 +1,14 @@
-function createMarkerIcon(className, size = 16) {
-  return L.divIcon({
-    className: "",
-    html: `<div class="custom-marker ${className}" style="width:${size}px;height:${size}px"></div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2]
-  });
-}
-
-function initMap() {
-  const map = L.map("map", {
-    zoomControl: true,
-    scrollWheelZoom: true
-  }).setView(operationalData.mapCenter, operationalData.zoom);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap contributors"
-  }).addTo(map);
-
-  L.polyline(operationalData.route, {
-    color: "#1B3558",
-    weight: 5,
-    opacity: 0.75,
-    dashArray: "8 10"
-  }).addTo(map).bindPopup("Secuencia operativa simulada: ingreso → balanza → descarga → acopio → muelle.");
-
-  operationalData.zones.forEach((zone) => {
-    const iconClass = zone.type === "warning" ? "warning-marker" : "ops-marker";
-    L.marker(zone.coords, { icon: createMarkerIcon(iconClass, 18) })
-      .addTo(map)
-      .bindPopup(`<strong>${zone.name}</strong><br>${zone.description}`);
-  });
-
-  operationalData.ships.forEach((ship) => {
-    const progress = ship.tonsTotal > 0 ? Math.round((ship.tonsLoaded / ship.tonsTotal) * 100) : 0;
-
-    L.marker(ship.coords, { icon: createMarkerIcon("ship-marker", 22) })
-      .addTo(map)
-      .bindPopup(`
-        <strong>${ship.id} · ${ship.name}</strong><br>
-        Estado: ${ship.status}<br>
-        Avance: ${ship.tonsLoaded.toLocaleString("es-AR")} / ${ship.tonsTotal.toLocaleString("es-AR")} tn (${progress}%)<br>
-        ETA/ETD: ${ship.eta}
-      `);
-  });
-
-  operationalData.trucks.forEach((truck) => {
-    L.marker(truck.coords, { icon: createMarkerIcon("truck-marker", 10) })
-      .addTo(map)
-      .bindPopup(`
-        <strong>${truck.id}</strong><br>
-        Etapa: ${truck.stage}<br>
-        Carga: ${truck.tons} tn<br>
-        Espera: ${truck.wait} min
-      `);
-  });
-}
-
-function renderShipsTable() {
-  const tbody = document.getElementById("ships-table");
-
-  tbody.innerHTML = operationalData.ships
-    .map((ship) => {
-      const progress = `${ship.tonsLoaded.toLocaleString("es-AR")} / ${ship.tonsTotal.toLocaleString("es-AR")} tn`;
-      return `
-        <tr>
-          <td>${ship.id}</td>
-          <td><span class="badge ${ship.badge}">${ship.status}</span></td>
-          <td>${progress}</td>
-          <td>${ship.eta}</td>
-        </tr>
-      `;
-    })
-    .join("");
-}
-
-function renderScenarios() {
-  const container = document.getElementById("scenarios");
-
-  container.innerHTML = operationalData.scenarios
-    .map((scenario) => {
-      return `
-        <article class="scenario">
-          <h3>${scenario.title}</h3>
-          <div>${scenario.lines.join("<br>")}</div>
-        </article>
-      `;
-    })
-    .join("");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  initMap();
-  renderShipsTable();
-  renderScenarios();
-});
+let map,layers=[],animatedMarkers=[],currentScenario="actual",animationTimer=null;
+function iconHtml(symbol,className){return L.divIcon({className:"",html:`<div class="custom-marker ${className}">${symbol}</div>`,iconSize:[28,28],iconAnchor:[14,14]})}
+function pulseIcon(){return L.divIcon({className:"",html:`<div class="pulse"></div>`,iconSize:[18,18],iconAnchor:[9,9]})}
+function clearDynamicLayers(){layers.forEach(l=>map.removeLayer(l));layers=[];animatedMarkers.forEach(m=>map.removeLayer(m));animatedMarkers=[];if(animationTimer)clearInterval(animationTimer)}
+function initMap(){map=L.map("map",{zoomControl:true,scrollWheelZoom:true}).setView(mapData.center,mapData.zoom);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap contributors"}).addTo(map);renderMap()}
+function renderMap(){clearDynamicLayers();const s=scenarios[currentScenario];layers.push(L.polyline(mapData.truckRoute,{color:"#f4a62a",weight:5,opacity:.85,dashArray:"8 8"}).addTo(map).bindPopup("Ruta simulada de camiones: gate → balanza → espera → descarga → acopio → muelle."));layers.push(L.polyline(mapData.shipRoute,{color:"#1B3558",weight:5,opacity:.75}).addTo(map).bindPopup("Canal / aproximación simulada de buques y barcazas."));mapData.zones.forEach(z=>{layers.push(L.polygon(z.coords,{color:z.color,weight:2,opacity:.95,fillColor:z.color,fillOpacity:.22}).addTo(map).bindPopup(`<strong>${z.name}</strong><br>${z.description}`));layers.push(L.marker(z.center,{icon:L.divIcon({className:"",html:`<div class="zone-label">${z.name}</div>`,iconSize:[130,24],iconAnchor:[65,12]})}).addTo(map))});if(currentScenario==="y5"||currentScenario==="y10")layers.push(L.marker([-31.6452,-60.6938],{icon:pulseIcon()}).addTo(map).bindPopup("<strong>Cuello de botella proyectado</strong><br>La balanza concentra demoras crecientes en este escenario."));mapData.ships.slice(0,s.shipsVisible).forEach(ship=>{const progress=ship.total>0?Math.round(ship.loaded/ship.total*100):0;layers.push(L.marker(ship.coords,{icon:iconHtml("🚢","ship-icon")}).addTo(map).bindPopup(`<strong>${ship.id} · ${ship.name}</strong><br>Estado: ${ship.status}<br>Avance: ${ship.loaded.toLocaleString("es-AR")} / ${ship.total.toLocaleString("es-AR")} tn (${progress}%)<br>ETA/ETD: ${ship.eta}<br>Camiones asociados: ${Math.round(ship.total/30)}`))});createAnimatedTrucks(s.trucksVisible)}
+function pointAlongRoute(route,p){const idx=Math.floor(p*(route.length-1)),next=Math.min(idx+1,route.length-1),lp=p*(route.length-1)-idx,[lat1,lon1]=route[idx],[lat2,lon2]=route[next];return [lat1+(lat2-lat1)*lp,lon1+(lon2-lon1)*lp]}
+function createAnimatedTrucks(count){for(let i=0;i<count;i++){const pos=pointAlongRoute(mapData.truckRoute,(i/count)%1);const m=L.marker(pos,{icon:iconHtml("🚛","truck-icon")}).addTo(map).bindPopup(`<strong>CAM-${1001+i}</strong><br>Etapa simulada en ruta operativa<br>Carga: ${28+i%5} tn`);animatedMarkers.push(m)}let tick=0;animationTimer=setInterval(()=>{animatedMarkers.forEach((m,i)=>m.setLatLng(pointAlongRoute(mapData.truckRoute,((i/count)+tick/700)%1)));tick++},120)}
+function renderKPIs(){document.getElementById("kpis").innerHTML=scenarios[currentScenario].kpis.map(([l,v])=>`<article class="kpi"><span>${l}</span><strong>${v}</strong></article>`).join("")}
+function renderTables(){const s=scenarios[currentScenario];document.getElementById("ships-table").innerHTML=mapData.ships.slice(0,s.shipsVisible).map(ship=>`<tr><td>${ship.id}</td><td><span class="badge ${ship.badge}">${ship.status}</span></td><td>${ship.loaded.toLocaleString("es-AR")} / ${ship.total.toLocaleString("es-AR")} tn</td><td>${ship.eta}</td></tr>`).join("");document.getElementById("truck-table").innerHTML=`<tr><td>Ciclo promedio gate-to-gate</td><td>${s.truckCycle}</td></tr><tr><td>Demora actual</td><td><span class="badge ${currentScenario==="actual"?"warn":"danger"}">${s.delay}</span></td></tr><tr><td>Camiones/hora</td><td>${s.trucksHour}</td></tr><tr><td>Toneladas recibidas</td><td>${s.received}</td></tr>`}
+function renderScenarios(){document.getElementById("scenarios").innerHTML=Object.entries(scenarios).map(([k,s])=>`<article class="scenario ${k===currentScenario?"active":""}"><h3>${s.label}</h3><div>${s.kpis.slice(1).map(([l,v])=>`${v} · ${l}`).join("<br>")}</div></article>`).join("")}
+function renderAlerts(){document.getElementById("alerts").innerHTML=scenarios[currentScenario].alerts.map(([t,b])=>`<div class="alert-card"><strong>${t}</strong>${b}</div>`).join("")}
+function setScenario(k){currentScenario=k;document.querySelectorAll(".scenario-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.scenario===k));renderKPIs();renderTables();renderScenarios();renderAlerts();renderMap()}
+document.addEventListener("DOMContentLoaded",()=>{initMap();renderKPIs();renderTables();renderScenarios();renderAlerts();document.querySelectorAll(".scenario-btn").forEach(btn=>btn.addEventListener("click",()=>setScenario(btn.dataset.scenario)))})
