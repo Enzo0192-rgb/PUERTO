@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PUERTO DE SANTA FE | Centro de Control Portuario</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+:root{
+  --bg:#061522;--panel:#071d2d;--panel2:#0b263a;--line:#1d405b;--ink:#eef7ff;--muted:#a6bbcc;
+  --blue:#2381d9;--green:#4fc368;--yellow:#f3cf42;--orange:#ff8a22;--purple:#a276ff;--cyan:#35c6ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:Inter,Arial,sans-serif;background:#061522;color:var(--ink);overflow-x:hidden}
+body{background:radial-gradient(circle at top left,#0a2639 0,#061522 40%,#030b12 100%)}
+.topbar{
+  height:126px;
+  padding:16px 18px;
+  display:grid;
+  grid-template-columns:330px 1fr;
+  gap:20px;
+  align-items:center;
+  background:linear-gradient(90deg,#061522,#08233a);
+  border-bottom:1px solid #173956;
+}
+.brand-block{display:flex;gap:16px;align-items:center}
+.anchor{font-size:48px;color:#dff3ff}
+.brand{font-size:28px;font-weight:950;letter-spacing:.5px}
+.subtitle{font-size:15px;color:#35a9ff;font-weight:800;margin-top:4px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.kpi{
+  background:rgba(7,29,45,.92);
+  border:1px solid #1e435d;
+  border-radius:9px;
+  padding:13px 16px;
+  min-height:88px;
+}
+.kpi .label{font-size:11px;text-transform:uppercase;color:#b9cbd8;font-weight:900}
+.kpi .value{font-size:23px;font-weight:950;margin-top:10px}
+.kpi .note{font-size:12px;color:#e7f1fb;margin-top:4px}
+.kpi .bar{height:5px;border-radius:999px;background:#20384a;margin-top:10px;overflow:hidden}
+.kpi .bar span{display:block;height:100%;border-radius:999px;background:var(--blue)}
+.kpi.green .bar span{background:var(--green)}
+.kpi.yellow .bar span{background:var(--yellow)}
+.kpi.purple .bar span{background:var(--purple)}
+.layout{
+  display:grid;
+  grid-template-columns:220px 1fr;
+  min-height:calc(100vh - 126px);
+}
+.sidebar{
+  border-right:1px solid var(--line);
+  background:rgba(5,19,31,.96);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.side-section{margin:18px 14px;border:1px solid #1e435d;border-radius:8px;overflow:hidden;background:rgba(7,29,45,.82)}
+.side-title{padding:12px 14px;font-weight:900;text-transform:uppercase;color:#d9edf9;border-bottom:1px solid #1e435d}
+.side-item{display:flex;gap:10px;align-items:center;padding:13px 14px;border-bottom:1px solid #173956;color:#fff;font-size:13px}
+.side-item:last-child{border-bottom:0}.dot{width:12px;height:12px;border-radius:50%;border:1px solid #7f9bb0}.dot.active{background:#2381d9;border-color:#2381d9}
+.side-icon{font-size:22px;width:28px;text-align:center}.blue{color:#2381d9}.green{color:#4fc368}.yellow{color:#f3cf42}.purple{color:#a276ff}
+.side-footer{border-top:1px solid var(--line);padding:16px 14px;display:grid;gap:12px}
+.footer-card{border:1px solid #1e435d;border-radius:8px;padding:12px 14px;background:rgba(7,29,45,.82);font-size:13px}
+.footer-card b{display:block;font-size:17px;margin-top:4px}
+.main{
+  display:grid;
+  grid-template-columns:1fr 300px;
+  grid-template-rows:1fr 88px;
+}
+.map-wrap{
+  position:relative;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+#map{height:100%;min-height:680px;background:#0a1f30}
+.right-panel{
+  border-bottom:1px solid var(--line);
+  background:rgba(5,19,31,.75);
+  padding:18px 14px;
+}
+.panel{
+  background:rgba(7,29,45,.92);
+  border:1px solid var(--line);
+  border-radius:9px;
+  margin-bottom:14px;
+  overflow:hidden;
+}
+.panel h2{margin:0;padding:12px 14px;font-size:15px;text-transform:uppercase;border-bottom:1px solid var(--line);color:#e4f4ff}
+.ship-list{display:grid;gap:8px;padding:12px}
+.ship-card{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;border:1px solid #173956;border-radius:7px;background:#071827;padding:9px}
+.ship-card .emoji{font-size:26px}.ship-card b{color:#fff}.ship-card small{display:block;color:#bcd0df;margin-top:3px}.ship-card .tons{text-align:right;font-weight:900}
+.bottom-status{
+  grid-column:1/3;
+  background:rgba(5,19,31,.96);
+  display:grid;
+  grid-template-columns:220px 190px 1fr 340px;
+  gap:10px;
+  align-items:center;
+  padding:14px;
+}
+.status-item{border-right:1px solid #173956;padding:0 16px;color:#bcd0df}
+.status-item b{display:block;color:#fff;font-size:18px;margin-top:4px}
+.info-box{border:1px solid #1e435d;border-radius:8px;padding:12px 14px;color:#bcd0df;background:rgba(7,29,45,.8);justify-self:end;width:330px}
+.zone-label{
+  background:rgba(7,29,45,.96);
+  border:2px solid #426c88;
+  color:#fff;
+  border-radius:7px;
+  padding:11px 13px;
+  text-align:left;
+  font-weight:950;
+  font-size:12px;
+  box-shadow:0 4px 14px rgba(0,0,0,.38);
+  min-width:160px;
+}
+.zone-label .z-title{font-size:15px;text-transform:uppercase}
+.zone-label small{display:block;margin-top:6px;color:#fff;font-weight:600}
+.zone-label.green{border-color:#4fc368}
+.zone-label.yellow{border-color:#f3cf42}
+.zone-label.blue{border-color:#2381d9}
+.zone-label.orange{border-color:#ff8a22}
+.zone-label.purple{border-color:#a276ff}
+.zone-label.dock{border-color:#2381d9;min-width:135px}
+.truck-icon{font-size:9px;filter:drop-shadow(0 2px 2px #000)}
+.truck-op{font-size:14px;filter:drop-shadow(0 2px 2px #000)}
+.ship-icon{font-size:38px;filter:drop-shadow(0 5px 7px #000)}
+.barge-berth{
+  border:1px dashed rgba(255,255,255,.45);
+  border-radius:22px;
+  width:42px;height:116px;
+  transform:rotate(10deg);
+}
+.leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.35)!important;color:#fff!important}
+.leaflet-control-zoom a{background:#071d2d!important;color:white!important;border-color:#1d405b!important}
+@media(max-width:1300px){
+  .topbar{height:auto;grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{grid-template-columns:1fr}
+  .right-panel{grid-row:auto}
+  .bottom-status{grid-column:1;grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand-block">
+    <div class="anchor">⚓</div>
+    <div>
+      <div class="brand">PUERTO DE SANTA FE</div>
+      <div class="subtitle">Centro de Control Portuario</div>
+    </div>
+  </div>
+  <section class="kpis" id="kpis"></section>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div>
+      <div class="side-section">
+        <div class="side-title">Escenarios</div>
+        <div class="side-item scenario active" data-scenario="actual"><span class="dot active"></span> Hoy</div>
+        <div class="side-item scenario" data-scenario="y2"><span class="dot"></span> + 2 años</div>
+        <div class="side-item scenario" data-scenario="y5"><span class="dot"></span> + 5 años</div>
+        <div class="side-item scenario" data-scenario="y10"><span class="dot"></span> + 10 años</div>
+      </div>
+      <div class="side-section">
+        <div class="side-title">Simulador de inversiones</div>
+        <div class="side-item"><span class="side-icon blue">⚖️</span> Nueva Balanza</div>
+        <div class="side-item"><span class="side-icon green">▥</span> Nuevo Silo</div>
+        <div class="side-item"><span class="side-icon yellow">▦</span> Ampliar Playa</div>
+        <div class="side-item"><span class="side-icon purple">⚓</span> Nuevo Muelle</div>
+      </div>
+    </div>
+    <div class="side-footer">
+      <div class="footer-card">📈 Ver impacto</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="map-wrap"><div id="map"></div></section>
+
+    <aside class="right-panel">
+      <section class="panel">
+        <h2>Barcazas en río</h2>
+        <div style="padding:0 12px 6px;color:#bcd0df;font-size:13px">Esperando carga</div>
+        <div class="ship-list" id="shipList"></div>
+      </section>
+    </aside>
+
+    <section class="bottom-status">
+      <div class="status-item">📅 Fecha <b>19/05/2025</b></div>
+      <div class="status-item">🕐 Hora <b>10:42</b></div>
+      <div class="status-item">🌤️ Clima <b>21°C <span style="font-size:12px;color:#bcd0df">Parcialmente nublado</span></b></div>
+      <div class="info-box">ⓘ Los datos se actualizan cada 5 minutos &nbsp;&nbsp;↻</div>
+    </section>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const scenarios={
+  actual:{trucks:118,capacity:160,tons:24350,totalTons:30000,cost:"$ 2,45 M",time:"2,6 h",occupation:"78%",storage:"120.000 tn",ships:3},
+  y2:{trucks:154,capacity:190,tons:35000,totalTons:45000,cost:"$ 3,1 M",time:"3,2 h",occupation:"82%",storage:"150.000 tn",ships:4},
+  y5:{trucks:238,capacity:260,tons:62000,totalTons:80000,cost:"$ 5,8 M",time:"4,4 h",occupation:"88%",storage:"190.000 tn",ships:5},
+  y10:{trucks:390,capacity:420,tons:110000,totalTons:140000,cost:"$ 9,7 M",time:"6,1 h",occupation:"93%",storage:"250.000 tn",ships:6}
+};
+
+const mapData={
+  center:[-31.65915,-60.70420],
+  zoom:18,
+  zones:[
+    {name:"Acceso / Gate",text:"Ingreso de camiones",color:"#4fc368",cls:"green",center:[-31.65792,-60.70672],polygon:[[-31.65772,-60.70698],[-31.65758,-60.70652],[-31.65812,-60.70636],[-31.65824,-60.70682]],label:[-31.65778,-60.70755]},
+    {name:"Playa de espera",text:"118 camiones<br>Cap. 160",color:"#f3cf42",cls:"yellow",center:[-31.65905,-60.70565],polygon:[[-31.65822,-60.70626],[-31.65825,-60.70500],[-31.65988,-60.70496],[-31.65990,-60.70622]],label:[-31.65910,-60.70698]},
+    {name:"Balanzas",text:"2 operativas",color:"#2381d9",cls:"blue",center:[-31.66027,-60.70576],polygon:[[-31.66002,-60.70616],[-31.66002,-60.70535],[-31.66070,-60.70534],[-31.66070,-60.70610]],label:[-31.66024,-60.70690]},
+    {name:"Tolva / Descarga",text:"12 camiones",color:"#ff8a22",cls:"orange",center:[-31.66118,-60.70538],polygon:[[-31.66085,-60.70580],[-31.66082,-60.70486],[-31.66158,-60.70483],[-31.66162,-60.70574]],label:[-31.66118,-60.70705]},
+    {name:"Silos",text:"Cap. 120.000 tn",color:"#a276ff",cls:"purple",center:[-31.66185,-60.70455],polygon:[[-31.66128,-60.70502],[-31.66125,-60.70420],[-31.66230,-60.70415],[-31.66236,-60.70495]],label:[-31.66190,-60.70685]},
+    {name:"Muelle",text:"1 operativo",color:"#2381d9",cls:"dock",center:[-31.66045,-60.70310],polygon:[[-31.66005,-60.70345],[-31.66005,-60.70260],[-31.66085,-60.70258],[-31.66088,-60.70342]],label:[-31.66046,-60.70240]}
+  ],
+  routes:{
+    in:[[-31.65725,-60.70760],[-31.65792,-60.70672],[-31.65905,-60.70565]],
+    op:[[-31.65905,-60.70565],[-31.66027,-60.70576],[-31.66118,-60.70538],[-31.66185,-60.70455],[-31.66045,-60.70310]]
+  },
+  ships:[
+    {id:"BZA 1048",tons:"8.000 tn",eta:"ETA: 2,4 h",pos:[-31.65855,-60.70125]},
+    {id:"BZA 2056",tons:"7.500 tn",eta:"ETA: 5,1 h",pos:[-31.66048,-60.70110]},
+    {id:"BZA 3091",tons:"8.850 tn",eta:"ETA: 7,3 h",pos:[-31.66210,-60.70100]},
+    {id:"BZA 4022",tons:"6.200 tn",eta:"ETA: 9,1 h",pos:[-31.65735,-60.70142]},
+    {id:"BZA 5067",tons:"7.900 tn",eta:"ETA: 11,3 h",pos:[-31.66310,-60.70088]},
+    {id:"BZA 6020",tons:"8.300 tn",eta:"ETA: 13,0 h",pos:[-31.65625,-60.70162]}
+  ]
+};
+
+let map,currentScenario="actual",layers=[];
+function icon(html,size=[28,28],anchor=[14,14]){return L.divIcon({className:"",html,iconSize:size,iconAnchor:anchor})}
+function clearLayers(){layers.forEach(l=>map.removeLayer(l));layers=[]}
+
+function init(){
+  map=L.map("map",{zoomControl:true,scrollWheelZoom:true}).setView(mapData.center,mapData.zoom);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{attribution:"Tiles &copy; Esri"}).addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{opacity:.06,maxZoom:19}).addTo(map);
+
+  document.querySelectorAll(".scenario").forEach(el=>{
+    el.addEventListener("click",()=>{
+      currentScenario=el.dataset.scenario;
+      document.querySelectorAll(".scenario").forEach(s=>s.classList.remove("active"));
+      document.querySelectorAll(".scenario .dot").forEach(d=>d.classList.remove("active"));
+      el.classList.add("active");
+      el.querySelector(".dot").classList.add("active");
+      renderAll();
+    });
+  });
+  renderAll();
+}
+
+function renderAll(){renderKpis();renderMap();renderShipsPanel()}
+
+function renderKpis(){
+  const s=scenarios[currentScenario];
+  const pct=Math.round((s.tons/s.totalTons)*100);
+  const data=[
+    ["🚚","Camiones en playa",s.trucks,`/ ${s.capacity} capacidad`,"blue",Math.round(s.trucks/s.capacity*100)],
+    ["🌾","Toneladas por cargar",s.tons.toLocaleString("es-AR")+" tn",`/ ${s.totalTons.toLocaleString("es-AR")} tn capacidad`,"green",pct],
+    ["🟡","Costo operativo",s.cost,"por día","yellow",68],
+    ["🕐","Tiempo promedio",s.time,"en sistema","purple",58],
+    ["📊","Ocupación general",s.occupation,"de capacidad","blue",78],
+    ["🏬","Capacidad instalada",s.storage,"de almacenamiento","green",82]
+  ];
+  document.getElementById("kpis").innerHTML=data.map(k=>`
+    <article class="kpi ${k[4]}">
+      <div class="label">${k[0]} &nbsp; ${k[1]}</div>
+      <div class="value">${k[2]}</div>
+      <div class="note">${k[3]}</div>
+      <div class="bar"><span style="width:${k[5]}%"></span></div>
+    </article>
+  `).join("");
+}
+
+function renderMap(){
+  clearLayers();
+  const s=scenarios[currentScenario];
+
+  mapData.zones.forEach(z=>{
+    layers.push(L.polygon(z.polygon,{color:z.color,fillColor:z.color,fillOpacity:.16,weight:2}).addTo(map));
+    layers.push(L.polyline([z.label,z.center],{color:z.color,weight:2,opacity:.75}).addTo(map));
+    layers.push(L.marker(z.label,{icon:icon(`<div class="zone-label ${z.cls}"><div class="z-title">${z.name}</div><small>${z.text}</small></div>`,[170,70],[85,35])}).addTo(map));
+  });
+
+  layers.push(L.polyline(mapData.routes.in,{color:"#4fc368",weight:3,opacity:.75}).addTo(map));
+  layers.push(L.polyline(mapData.routes.op,{color:"#f3cf42",weight:3,opacity:.70}).addTo(map));
+
+  renderTrucks(s);
+  renderOperationalTrucks();
+  renderShipsOnWater(s);
+}
+
+function renderTrucks(s){
+  const max=Math.min(s.trucks,120);
+  const cols=12;
+  for(let i=0;i<max;i++){
+    const r=Math.floor(i/cols),c=i%cols;
+    const lat=-31.65842-r*0.000095;
+    const lon=-60.70618+c*0.000102;
+    if(lat>-31.65990 && lon<-60.70496){
+      layers.push(L.marker([lat,lon],{icon:icon(`<div class="truck-icon">🚛</div>`,[11,11],[5,5])}).addTo(map));
+    }
+  }
+}
+
+function renderOperationalTrucks(){
+  [[-31.65792,-60.70672],[-31.66027,-60.70576],[-31.66118,-60.70538],[-31.66185,-60.70455]].forEach(p=>{
+    layers.push(L.marker(p,{icon:icon(`<div class="truck-op">🚚</div>`,[16,16],[8,8])}).addTo(map));
+  });
+}
+
+function renderShipsOnWater(s){
+  mapData.ships.slice(0,s.ships).forEach(ship=>{
+    layers.push(L.marker(ship.pos,{icon:icon(`<div class="ship-icon">🚢</div>`,[42,42],[21,21])}).addTo(map));
+    layers.push(L.circle(ship.pos,{radius:45,color:"rgba(255,255,255,.45)",fillOpacity:0,dashArray:"5 5"}).addTo(map));
+  });
+}
+
+function renderShipsPanel(){
+  const s=scenarios[currentScenario];
+  document.getElementById("shipList").innerHTML=mapData.ships.slice(0,3).map(ship=>`
+    <div class="ship-card">
+      <div class="emoji">🚢</div>
+      <div><b>${ship.id}</b><small>${ship.eta}</small></div>
+      <div class="tons">${ship.tons}<small>pendientes</small></div>
+    </div>
+  `).join("");
+}
+
+document.addEventListener("DOMContentLoaded",init);
+</script>
+</body>
+</html>
